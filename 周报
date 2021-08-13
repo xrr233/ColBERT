@@ -1,0 +1,17 @@
+2021.8.13
+1.完成模型代码，构建模型数据
+2.正在进行多组实验，包括HirachicalBert(Pretrain)、HirachicalBert(fine tune)、FraBert(Pretrain)和FraBert(fine tune)的MS-Marco实验，预计下周一会出结果。
+-------
+1. selection-based基础实验已跑完，但实验部分结果有些许偏差，初步分析是由于batch size - learning rate - 以及训练量带来的问题。
+2. 分析了之前idea的一些问题点，目前正在修改实验代码并验证。
+
+2021.8.6
+1.重新组织上层模型结构，原始的多层级方案是设置k个Transformer Encoder，每层Encoder使用不同的参数，对于节点向量和文本向量采用同样的处理方式，问题在于1.模型容量过大。2.输入模型的每条Token长度过长（batch_size*tag_num*max_seq_len）。3.对于文本节点的编码和对tag节点的编码采用同样的策略。新的模型结构为，仍然为多层级，但每一层Transformer分为Text Encoder和Node Encoder，Text Encoder采用Bert的配置，Node Encoder的层数较少，且最大长度较小，用于节省模型空间。同时所有层的Text Encoder之间共享参数，Node Encoder之间共享参数。 其次，采用先Pretrain再fine tune的方案，Text Encoder由于只需要编码html文本，我们先使用传统Bert的训练方案，训练出一个具有一定文本编码能力的模型，再加入上层模型进行fine tune。
+2.Text Encoder模型在跑，多节点还有点问题。
+3.使用ColBert测试模型在IR任务上的训练效果，训练步数太少，仍需调优。
+4.调研论文
+-----
+1. selection-base部分实验的补充：1）提取MSMARCO PASSAGE数据集idf特征，并进行训练验证，目前rerank的MRR@10结果为0.324，正在补充retrieval实验。2）完成idf-grouped实验的训练，待验证。
+2. 对比分析动态选词结果和deepct结果，发现动态选词结果相比于deepct结果较差，分析可能是因为deepct显示地利用了整个queries corpus和collections corpus作为监督信息，而动态选词只利用了文档内部信息。
+3. 尝试利用“topic embeddings”+“token embeddings”进行实验，但效果不是很好，待进一步分析。
+4. 调研相关论文。
